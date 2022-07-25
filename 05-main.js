@@ -115,13 +115,18 @@ class ListService {
 
             let li = document.createElement("li");
             li.textContent = displayFn(currentData);
-            li.dataset.index = index;
+            currentData.id = index; // для каждого пользователя указываем id, который совпадает с id в разметке
+            li.dataset.id = index;
 
             this.listElement.append(li);
         }
     }
 
     select(id) {
+        // производим поиско по массиву пользователя со свойством id такми же как и id указанное в разметке
+        // так как данные из массива будут удалятся, то полагаться на порядковый номер элемента в массиве нельзя.
+        // Количество элементов в массиве будет менятся, а значения, которые находятся в dataset.id будут указывать
+        // на несуществующие или другие элементы массива.
         this.selectedData = this.data.filter(x => x.id == id)[0];
         this.deselectAll();
 
@@ -136,6 +141,7 @@ class ListService {
         }
     }
 
+    // удаление данных из разметки и массива
     deleteSelectedItem() {
         const index = this.data.indexOf(this.selectedData);
         if (index != -1) {
@@ -143,10 +149,9 @@ class ListService {
             this.data.splice(index, 1);
         }
     }
-
 }
 
-// Класс для работы с формой, редактирующей информацию о пользователе
+// Класс для работы с форомой, редактирующей информацию о пользователе
 class UserFormService {
     currentUser;
     form;
@@ -175,6 +180,7 @@ class UserFormService {
         this.currentUser.age = this.form.age.value;
     }
 
+    // очистка формы
     resetForm() {
         this.form.reset();
     }
@@ -182,7 +188,6 @@ class UserFormService {
 
 let userList = document.querySelector("#userList");
 let saveButton = document.querySelector("#saveButton");
-let clearButton = document.querySelector("#clearButton");
 let deleteButton = document.querySelector("#deleteButton");
 
 let listService = new ListService(users, userList, x => x.name.first + " " + x.name.last);
@@ -191,7 +196,7 @@ let formService = new UserFormService(document.forms[0]);
 userList.addEventListener("click", function (e) {
     if (e.target.tagName != "LI") return;
 
-    const userNumber = e.target.dataset.index;
+    const userNumber = e.target.dataset.id;
     listService.select(userNumber);
     formService.fillForm(listService.selectedData);
 });
@@ -200,10 +205,8 @@ saveButton.addEventListener("click", function () {
     formService.saveForm();
 });
 
-clearButton.addEventListener("click", function () {
-    formService.resetForm();
-});
-
+// удаляем и очищаем форму
 deleteButton.addEventListener("click", function () {
     listService.deleteSelectedItem();
+    formService.resetForm();
 });
